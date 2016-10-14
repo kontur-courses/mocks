@@ -1,6 +1,6 @@
 using System;
 
-namespace FileSender.Solved.SplitRefactoring
+namespace Samples.MultiFileSender
 {
     public interface IDateTimeService
     {

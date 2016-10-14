@@ -1,6 +1,6 @@
-using FileSender.Dependencies;
+using Samples.MultiFileSender.Dependencies;
 
-namespace FileSender.Solved.SplitRefactoring
+namespace Samples.MultiFileSender
 {
     public class DocumentChecker : IDocumentChecker
     {

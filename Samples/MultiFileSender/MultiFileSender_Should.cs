@@ -1,10 +1,10 @@
 using System.Security.Cryptography.X509Certificates;
 using FakeItEasy;
-using FileSender.Dependencies;
 using FluentAssertions;
 using NUnit.Framework;
+using Samples.MultiFileSender.Dependencies;
 
-namespace FileSender.Solved.SplitRefactoring
+namespace Samples.MultiFileSender
 {
     [TestFixture]
     public class MultiFileSender_Should
@@ -31,7 +31,8 @@ namespace FileSender.Solved.SplitRefactoring
         [Test]
         public void Send_WhenSingle()
         {
-            A.CallTo(() => singleFileSender.TrySendFile(file, certificate)).Returns(true);
+            A.CallTo(() => singleFileSender.TrySendFile(file, certificate))
+                .Returns(true);
 
             multiFileSender.SendFiles(new[] { file }, certificate)
                 .SkippedFiles.Should().BeEmpty();
@@ -40,7 +41,8 @@ namespace FileSender.Solved.SplitRefactoring
         [Test]
         public void Skip_WhenSingle()
         {
-            A.CallTo(() => singleFileSender.TrySendFile(file, certificate)).Returns(false);
+            A.CallTo(() => singleFileSender.TrySendFile(file, certificate))
+                .Returns(false);
 
             multiFileSender.SendFiles(new[] { file }, certificate)
                 .SkippedFiles.Should().BeEquivalentTo(file);
@@ -49,9 +51,12 @@ namespace FileSender.Solved.SplitRefactoring
         [Test]
         public void IndependentlySend_WhenSeveralFiles()
         {
-            A.CallTo(() => singleFileSender.TrySendFile(file, certificate)).Returns(true);
-            A.CallTo(() => singleFileSender.TrySendFile(file2, certificate)).Returns(false);
-            A.CallTo(() => singleFileSender.TrySendFile(file3, certificate)).Returns(true);
+            A.CallTo(() => singleFileSender.TrySendFile(file, certificate))
+                .Returns(true);
+            A.CallTo(() => singleFileSender.TrySendFile(file2, certificate))
+                .Returns(false);
+            A.CallTo(() => singleFileSender.TrySendFile(file3, certificate))
+                .Returns(true);
 
             multiFileSender.SendFiles(new[] { file, file2, file3 }, certificate)
                 .SkippedFiles.Should().BeEquivalentTo(file2);

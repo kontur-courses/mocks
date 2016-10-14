@@ -1,8 +1,8 @@
 ﻿using System.Linq;
 using System.Security.Cryptography.X509Certificates;
-using FileSender.Dependencies;
+using Samples.MultiFileSender.Dependencies;
 
-namespace FileSender.Solved.SplitRefactoring
+namespace Samples.MultiFileSender
 {
     public class MultiFileSender
     {

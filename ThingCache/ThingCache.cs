@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using NUnit.Framework;
 
 namespace MockFramework
 {
@@ -25,5 +26,28 @@ namespace MockFramework
             }
             return null;
         }
+    }
+
+    [TestFixture]
+    public class ThingCache_Should
+    {
+        private IThingService thingService;
+        private ThingCache thingCache;
+
+        private const string thingId1 = "TheDress";
+        private Thing thing1 = new Thing(thingId1);
+
+        private const string thingId2 = "CoolBoots";
+        private Thing thing2 = new Thing(thingId2);
+
+        [SetUp]
+        public void SetUp()
+        {
+            //thingService = A...
+            thingCache = new ThingCache(thingService);
+        }
+
+        //TODO: написать простейший тест, а затем все остальные
+        //Live Template tt работает!
     }
 }

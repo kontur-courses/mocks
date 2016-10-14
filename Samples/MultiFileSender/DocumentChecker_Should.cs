@@ -1,10 +1,10 @@
 using System;
 using FakeItEasy;
-using FileSender.Dependencies;
 using FluentAssertions;
 using NUnit.Framework;
+using Samples.MultiFileSender.Dependencies;
 
-namespace FileSender.Solved.SplitRefactoring
+namespace Samples.MultiFileSender
 {
     [TestFixture]
     public class DocumentChecker_Should
@@ -39,15 +39,19 @@ namespace FileSender.Solved.SplitRefactoring
         [Test]
         public void Fail_WhenOlderThanAMonth()
         {
-            var document = new Document("someFile", null, specialDate.Date.AddMonths(-1), "4.0");
-            documentChecker.CheckDocument(document).Should().BeFalse();
+            var document = new Document("someFile", null,
+                specialDate.Date.AddMonths(-1), "4.0");
+            documentChecker.CheckDocument(document)
+                .Should().BeFalse();
         }
 
         [Test]
         public void Pass_WhenYoungerThanAMonth()
         {
-            var document = new Document("someFile", null, specialDate.Date.AddMonths(-1).AddSeconds(1), "4.0");
-            documentChecker.CheckDocument(document).Should().BeTrue();
+            var document = new Document("someFile", null,
+                specialDate.Date.AddMonths(-1).AddSeconds(1), "4.0");
+            documentChecker.CheckDocument(document)
+                .Should().BeTrue();
         }
     }
 }

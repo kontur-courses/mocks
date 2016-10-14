@@ -1,11 +1,11 @@
 using System;
 using System.Security.Cryptography.X509Certificates;
 using FakeItEasy;
-using FileSender.Dependencies;
 using FluentAssertions;
 using NUnit.Framework;
+using Samples.MultiFileSender.Dependencies;
 
-namespace FileSender.Solved.SplitRefactoring
+namespace Samples.MultiFileSender
 {
     [TestFixture]
     public class SingleFileSender_Should
@@ -39,44 +39,60 @@ namespace FileSender.Solved.SplitRefactoring
         public void Send_WhenGoodDocument()
         {
             var document = BuildDocument(file);
-            A.CallTo(() => recognizer.TryRecognize(file, out document)).Returns(true);
-            A.CallTo(() => documentChecker.CheckDocument(document)).Returns(true);
-            A.CallTo(() => cryptographer.Sign(document.Content, certificate)).Returns(signedContent);
-            A.CallTo(() => sender.TrySend(signedContent)).Returns(true);
+            A.CallTo(() => recognizer.TryRecognize(file, out document))
+                .Returns(true);
+            A.CallTo(() => documentChecker.CheckDocument(document))
+                .Returns(true);
+            A.CallTo(() => cryptographer.Sign(document.Content, certificate))
+                .Returns(signedContent);
+            A.CallTo(() => sender.TrySend(signedContent))
+                .Returns(true);
 
-            fileSender.TrySendFile(file, certificate).Should().BeTrue();
+            fileSender.TrySendFile(file, certificate)
+                .Should().BeTrue();
         }
 
         [Test]
         public void NotSend_WhenBadDocument()
         {
             var document = BuildDocument(file);
-            A.CallTo(() => recognizer.TryRecognize(file, out document)).Returns(true);
-            A.CallTo(() => documentChecker.CheckDocument(document)).Returns(false);
-            A.CallTo(() => sender.TrySend(A<byte[]>.Ignored)).MustNotHaveHappened();
+            A.CallTo(() => recognizer.TryRecognize(file, out document))
+                .Returns(true);
+            A.CallTo(() => documentChecker.CheckDocument(document))
+                .Returns(false);
+            A.CallTo(() => sender.TrySend(A<byte[]>.Ignored))
+                .MustNotHaveHappened();
 
-            fileSender.TrySendFile(file, certificate).Should().BeFalse();
+            fileSender.TrySendFile(file, certificate)
+                .Should().BeFalse();
         }
 
         [Test]
         public void NotSend_WhenSendFails()
         {
             var document = BuildDocument(file);
-            A.CallTo(() => recognizer.TryRecognize(file, out document)).Returns(true);
-            A.CallTo(() => cryptographer.Sign(document.Content, certificate)).Returns(signedContent);
-            A.CallTo(() => sender.TrySend(signedContent)).Returns(false);
+            A.CallTo(() => recognizer.TryRecognize(file, out document))
+                .Returns(true);
+            A.CallTo(() => cryptographer.Sign(document.Content, certificate))
+                .Returns(signedContent);
+            A.CallTo(() => sender.TrySend(signedContent))
+                .Returns(false);
 
-            fileSender.TrySendFile(file, certificate).Should().BeFalse();
+            fileSender.TrySendFile(file, certificate)
+                .Should().BeFalse();
         }
 
         [Test]
         public void NotSend_WhenNotRecognized()
         {
             Document document;
-            A.CallTo(() => recognizer.TryRecognize(file, out document)).Returns(false);
-            A.CallTo(() => sender.TrySend(A<byte[]>.Ignored)).MustNotHaveHappened();
+            A.CallTo(() => recognizer.TryRecognize(file, out document))
+                .Returns(false);
+            A.CallTo(() => sender.TrySend(A<byte[]>.Ignored))
+                .MustNotHaveHappened();
 
-            fileSender.TrySendFile(file, certificate).Should().BeFalse();
+            fileSender.TrySendFile(file, certificate)
+                .Should().BeFalse();
         }
 
         private Document BuildDocument(File file)

@@ -27,7 +27,9 @@ namespace FileSender
         {
             return new Result
             {
-                SkippedFiles = files.Where(file => !TrySendFile(file, certificate)).ToArray()
+                SkippedFiles = files
+                    .Where(file => !TrySendFile(file, certificate))
+                    .ToArray()
             };
         }
 
@@ -59,6 +61,7 @@ namespace FileSender
         }
     }
 
+    //TODO: реализовать недостающие тесты
     [TestFixture]
     public class FileSender_Should
     {
@@ -83,11 +86,56 @@ namespace FileSender
             fileSender = new FileSender(cryptographer, sender, recognizer);
         }
 
-        [Test]
-        public void Send()
+        [TestCase("4.0")]
+        [TestCase("3.1")]
+        public void Send_WhenGoodFormat(string format)
         {
+            var document = BuildDocument(file, DateTime.Now, format);
+            A.CallTo(() => recognizer.TryRecognize(file, out document))
+                .Returns(true);
+            A.CallTo(() => cryptographer.Sign(document.Content, certificate))
+                .Returns(signedContent);
+            A.CallTo(() => sender.TrySend(signedContent))
+                .Returns(true);
+
             fileSender.SendFiles(new[] { file }, certificate)
                 .SkippedFiles.Should().BeEmpty();
+        }
+
+        [Test, Ignore("Not implemented")]
+        public void Skip_WhenBadFormat()
+        {
+            throw new NotImplementedException();
+        }
+
+        [Test, Ignore("Not implemented")]
+        public void Skip_WhenOlderThanAMonth()
+        {
+            throw new NotImplementedException();
+        }
+
+        [Test, Ignore("Not implemented")]
+        public void Send_WhenYoungerThanAMonth()
+        {
+            throw new NotImplementedException();
+        }
+
+        [Test, Ignore("Not implemented")]
+        public void Skip_WhenSendFails()
+        {
+            throw new NotImplementedException();
+        }
+
+        [Test, Ignore("Not implemented")]
+        public void Skip_WhenNotRecognized()
+        {
+            throw new NotImplementedException();
+        }
+
+        [Test, Ignore("Not implemented")]
+        public void IndependentlySend_WhenSeveralFiles()
+        {
+            throw new NotImplementedException();
         }
 
         private Document BuildDocument(File file, DateTime created, string format)
