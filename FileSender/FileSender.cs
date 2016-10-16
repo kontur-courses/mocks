@@ -85,7 +85,7 @@ namespace FileSender
             recognizer = A.Fake<IRecognizer>();
             fileSender = new FileSender(cryptographer, sender, recognizer);
         }
-
+        
         [TestCase("4.0")]
         [TestCase("3.1")]
         public void Send_WhenGoodFormat(string format)
