@@ -16,18 +16,22 @@ namespace FileSender.Solved
         private IRecognizer recognizer;
 
         private readonly X509Certificate certificate = new X509Certificate();
-        private File file;
-        private File file2;
-        private File file3;
+        private File someFile;
+        private File someFile2;
+        private File someFile3;
         private byte[] signedContent;
         private byte[] signedContent3;
 
         [SetUp]
         public void SetUp()
         {
-            file = new File("someFile", new byte[] { 1, 2, 3 });
-            file2 = new File("someFile2", new byte[] { 2, 3, 4 });
-            file3 = new File("someFile3", new byte[] { 3, 4, 5 });
+			// “ут мы задаем некоторые известны дл€ всех тестов данные 
+			// и умолчательные поведени€ сервисов-заглушек.
+			// Ќаша цель Ч сделать так, чтобы в конкретных тестах осталась только их специфика,
+			// а конфигурирование "обычного" поведени€ не надо было повтор€ть от теста к тесту
+            someFile = new File("someFile", new byte[] { 1, 2, 3 });
+            someFile2 = new File("someFile2", new byte[] { 2, 3, 4 });
+            someFile3 = new File("someFile3", new byte[] { 3, 4, 5 });
             signedContent = new byte[] { 1, 7 };
             signedContent3 = new byte[] { 3, 7 };
 
@@ -35,127 +39,111 @@ namespace FileSender.Solved
             sender = A.Fake<ISender>();
             recognizer = A.Fake<IRecognizer>();
             fileSender = new FileSender(cryptographer, sender, recognizer);
-        }
+			A.CallTo(() => cryptographer.Sign(someFile.Content, null))
+				.WithAnyArguments()
+				.Returns(signedContent);
+			A.CallTo(() => cryptographer.Sign(someFile3.Content, null))
+				.WithAnyArguments()
+				.Returns(signedContent3);
+			A.CallTo(() => sender.TrySend(null))
+				.WithAnyArguments()
+				.Returns(true);
+		}
 
-        [TestCase("4.0")]
+		[TestCase("4.0")]
         [TestCase("3.1")]
         public void Send_WhenGoodFormat(string format)
         {
-            var document = BuildDocument(file, DateTime.Now, format);
-            A.CallTo(() => recognizer.TryRecognize(file, out document))
-                .Returns(true);
-            A.CallTo(() => cryptographer.Sign(document.Content, certificate))
-                .Returns(signedContent);
-            A.CallTo(() => sender.TrySend(signedContent))
-                .Returns(true);
+            PrepareDocument(someFile, DateTime.Now, format);
 
-            fileSender.SendFiles(new[] {file}, certificate)
+			fileSender.SendFiles(new[] {someFile}, certificate)
                 .SkippedFiles.Should().BeEmpty();
         }
 
-        [Test]
+		[Test]
+		public void Send_WhenYoungerThanAMonth()
+		{
+			PrepareDocument(someFile,
+				DateTime.Now.AddMonths(-1).AddDays(1), "4.0");
+			fileSender.SendFiles(new[] { someFile }, certificate)
+				.SkippedFiles.Should().BeEmpty();
+		}
+
+		[Test]
         public void Skip_WhenBadFormat()
         {
-            var document = BuildDocument(file, DateTime.Now, "2.0");
-            A.CallTo(() => recognizer.TryRecognize(file, out document))
-                .Returns(true);
-            A.CallTo(() => sender.TrySend(A<byte[]>.Ignored))
-                .MustNotHaveHappened();
+            PrepareDocument(someFile, DateTime.Now, "2.0");
 
-            fileSender.SendFiles(new[] { file }, certificate)
-                .SkippedFiles.Should().BeEquivalentTo(file);
-        }
+			fileSender.SendFiles(new[] { someFile }, certificate)
+                .SkippedFiles.Should().BeEquivalentTo(someFile);
+			A.CallTo(() => sender.TrySend(A<byte[]>.Ignored))
+				.MustNotHaveHappened();
+		}
 
-        [Test]
+		[Test]
         public void Skip_WhenOlderThanAMonth()
         {
-            var document = BuildDocument(file,
+            PrepareDocument(someFile,
                 DateTime.Now.Date.AddMonths(-1).AddDays(-1), "4.0");
-            A.CallTo(() => recognizer.TryRecognize(file, out document))
-                .Returns(true);
-            A.CallTo(() => sender.TrySend(A<byte[]>.Ignored))
-                .MustNotHaveHappened();
 
-            fileSender.SendFiles(new[] { file }, certificate)
-                .SkippedFiles.Should().BeEquivalentTo(file);
-        }
+            fileSender.SendFiles(new[] { someFile }, certificate)
+                .SkippedFiles.Should().BeEquivalentTo(someFile);
+			A.CallTo(() => sender.TrySend(A<byte[]>.Ignored))
+				.MustNotHaveHappened();
+		}
 
-        [Test]
-        public void Send_WhenYoungerThanAMonth()
-        {
-            var document = BuildDocument(file,
-                DateTime.Now.AddMonths(-1).AddDays(1), "4.0");
-            A.CallTo(() => recognizer.TryRecognize(file, out document))
-                .Returns(true);
-            A.CallTo(() => cryptographer.Sign(document.Content, certificate))
-                .Returns(signedContent);
-
-            A.CallTo(() => sender.TrySend(signedContent))
-                .Returns(true);
-
-            fileSender.SendFiles(new[] { file }, certificate)
-                .SkippedFiles.Should().BeEmpty();
-        }
-
-        [Test]
+		[Test]
         public void Skip_WhenSendFails()
         {
-            var document = BuildDocument(file, DateTime.Now, "4.0");
-            A.CallTo(() => recognizer.TryRecognize(file, out document))
-                .Returns(true);
-            A.CallTo(() => cryptographer.Sign(document.Content, certificate))
-                .Returns(signedContent);
-            A.CallTo(() => sender.TrySend(signedContent)).Returns(false);
+            PrepareDocument(someFile, DateTime.Now, "4.0");
+            A.CallTo(() => sender.TrySend(null))
+				.WithAnyArguments().Returns(false);
 
-            fileSender.SendFiles(new[] { file }, certificate)
-                .SkippedFiles.Should().BeEquivalentTo(file);
+            fileSender.SendFiles(new[] { someFile }, certificate)
+                .SkippedFiles.Should().BeEquivalentTo(someFile);
         }
 
         [Test]
         public void Skip_WhenNotRecognized()
         {
             Document document;
-            A.CallTo(() => recognizer.TryRecognize(file, out document))
+            A.CallTo(() => recognizer.TryRecognize(someFile, out document))
                 .Returns(false);
-            A.CallTo(() => sender.TrySend(A<byte[]>.Ignored))
-                .MustNotHaveHappened();
+            fileSender.SendFiles(new[] { someFile }, certificate)
+                .SkippedFiles.Should().BeEquivalentTo(someFile);
+			A.CallTo(() => sender.TrySend(null))
+				.WithAnyArguments().MustNotHaveHappened();
+		}
 
-            fileSender.SendFiles(new[] { file }, certificate)
-                .SkippedFiles.Should().BeEquivalentTo(file);
-        }
-
-        [Test]
+		[Test]
         public void IndependentlySend_WhenSeveralFiles()
         {
             //NOTE: ¬ажно задавать, сколько раз должен возвращатьс€ каждый из результатов
-            var document1 = BuildDocument(file, DateTime.Now, "4.0");
-            A.CallTo(() => recognizer.TryRecognize(file, out document1))
-                .Returns(true).Once();
+            var document1 = PrepareDocument(someFile, DateTime.Now, "4.0");
+            var document2 = PrepareDocument(someFile2, DateTime.Now, "2.0");
+            var document3 = PrepareDocument(someFile3, DateTime.Now, "4.0");
 
-            var document2 = BuildDocument(file2, DateTime.Now, "2.0");
-            A.CallTo(() => recognizer.TryRecognize(file2, out document2))
-                .Returns(true).Once();
-
-            var document3 = BuildDocument(file3, DateTime.Now, "4.0");
-            A.CallTo(() => recognizer.TryRecognize(file3, out document3))
-                .Returns(true).Once();
-
-            A.CallTo(() => cryptographer.Sign(document1.Content, certificate))
-                .Returns(signedContent).Once();
-            A.CallTo(() => cryptographer.Sign(document3.Content, certificate))
+			A.CallTo(() => cryptographer.Sign(document1.Content, certificate))
+				.Returns(signedContent).Once();
+			A.CallTo(() => cryptographer.Sign(document3.Content, certificate))
                 .Returns(signedContent3).Once();
 
-            //NOTE: ѕоследовательность результатов
             A.CallTo(() => sender.TrySend(A<byte[]>.Ignored))
                 .ReturnsNextFromSequence(false, true);
 
-            fileSender.SendFiles(new[] { file, file2, file3 }, certificate)
-                .SkippedFiles.Should().BeEquivalentTo(file, file2);
-        }
+			fileSender.SendFiles(new[] { someFile, someFile2, someFile3 }, certificate)
+                .SkippedFiles.Should().BeEquivalentTo(someFile, someFile2);
 
-        private Document BuildDocument(File file, DateTime created, string format)
+			A.CallTo(() => cryptographer.Sign(document2.Content, certificate))
+				.MustNotHaveHappened();
+		}
+
+		private Document PrepareDocument(File file, DateTime created, string format)
         {
-            return new Document(file.Name, file.Content, created, format);
+			var document = new Document(file.Name, file.Content, created, format);
+			A.CallTo(() => recognizer.TryRecognize(file, out document))
+				.Returns(true).Once();
+	        return document;
         }
     }
 }
