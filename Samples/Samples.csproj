@@ -62,6 +62,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="FakeItEasy_Should.cs" />
     <Compile Include="MultiFileSender\Dependencies\Document.cs" />
     <Compile Include="MultiFileSender\Dependencies\File.cs" />
     <Compile Include="MultiFileSender\Dependencies\ICryptographer.cs" />
