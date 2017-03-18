@@ -7,143 +7,137 @@ using NUnit.Framework;
 
 namespace FileSender.Solved
 {
-    [TestFixture]
-    public class FileSender_Should
-    {
-        private FileSender fileSender;
-        private ICryptographer cryptographer;
-        private ISender sender;
-        private IRecognizer recognizer;
+	[TestFixture]
+	public class FileSender_Should
+	{
+		private FileSender fileSender;
+		private ICryptographer cryptographer;
+		private ISender sender;
+		private IRecognizer recognizer;
 
-        private readonly X509Certificate certificate = new X509Certificate();
-        private File someFile;
-        private File someFile2;
-        private File someFile3;
-        private byte[] signedContent;
-        private byte[] signedContent3;
+		private readonly X509Certificate certificate = new X509Certificate();
 
-        [SetUp]
-        public void SetUp()
-        {
+		[SetUp]
+		public void SetUp()
+		{
 			// Тут мы задаем некоторые известны для всех тестов данные 
 			// и умолчательные поведения сервисов-заглушек.
 			// Наша цель — сделать так, чтобы в конкретных тестах осталась только их специфика,
 			// а конфигурирование "обычного" поведения не надо было повторять от теста к тесту
-            someFile = new File("someFile", new byte[] { 1, 2, 3 });
-            someFile2 = new File("someFile2", new byte[] { 2, 3, 4 });
-            someFile3 = new File("someFile3", new byte[] { 3, 4, 5 });
-            signedContent = new byte[] { 1, 7 };
-            signedContent3 = new byte[] { 3, 7 };
+			cryptographer = A.Fake<ICryptographer>();
+			sender = A.Fake<ISender>();
+			recognizer = A.Fake<IRecognizer>();
+			fileSender = new FileSender(cryptographer, sender, recognizer);
 
-            cryptographer = A.Fake<ICryptographer>();
-            sender = A.Fake<ISender>();
-            recognizer = A.Fake<IRecognizer>();
-            fileSender = new FileSender(cryptographer, sender, recognizer);
-			A.CallTo(() => cryptographer.Sign(someFile.Content, null))
+			A.CallTo(() => cryptographer.Sign(null, null))
 				.WithAnyArguments()
-				.Returns(signedContent);
-			A.CallTo(() => cryptographer.Sign(someFile3.Content, null))
-				.WithAnyArguments()
-				.Returns(signedContent3);
+				.Returns(Guid.NewGuid().ToByteArray());
 			A.CallTo(() => sender.TrySend(null))
 				.WithAnyArguments()
 				.Returns(true);
 		}
 
 		[TestCase("4.0")]
-        [TestCase("3.1")]
-        public void Send_WhenGoodFormat(string format)
-        {
-            PrepareDocument(someFile, DateTime.Now, format);
+		[TestCase("3.1")]
+		public void Send_WhenGoodFormat(string format)
+		{
+			var someFile = PrepareDocument(DateTime.Now, format);
 
-			fileSender.SendFiles(new[] {someFile}, certificate)
-                .SkippedFiles.Should().BeEmpty();
-        }
+			AssertSentSuccessful(someFile);
+		}
 
 		[Test]
 		public void Send_WhenYoungerThanAMonth()
 		{
-			PrepareDocument(someFile,
-				DateTime.Now.AddMonths(-1).AddDays(1), "4.0");
-			fileSender.SendFiles(new[] { someFile }, certificate)
-				.SkippedFiles.Should().BeEmpty();
+			var almostMonthAgo = DateTime.Now.AddMonths(-1).AddDays(1);
+			var someFile = PrepareDocument(almostMonthAgo);
+			AssertSentSuccessful(someFile);
 		}
 
 		[Test]
-        public void Skip_WhenBadFormat()
-        {
-            PrepareDocument(someFile, DateTime.Now, "2.0");
-
-			fileSender.SendFiles(new[] { someFile }, certificate)
-                .SkippedFiles.Should().BeEquivalentTo(someFile);
-			A.CallTo(() => sender.TrySend(A<byte[]>.Ignored))
-				.MustNotHaveHappened();
+		public void Skip_WhenBadFormat()
+		{
+			var someFile = PrepareDocument(DateTime.Now, "2.0");
+			AssertCanNotBeSent(someFile);
 		}
 
 		[Test]
-        public void Skip_WhenOlderThanAMonth()
-        {
-            PrepareDocument(someFile,
-                DateTime.Now.Date.AddMonths(-1).AddDays(-1), "4.0");
+		public void Skip_WhenOlderThanAMonth()
+		{
+			var someFile = PrepareDocument(
+				DateTime.Now.Date.AddMonths(-1).AddDays(-1));
 
-            fileSender.SendFiles(new[] { someFile }, certificate)
-                .SkippedFiles.Should().BeEquivalentTo(someFile);
-			A.CallTo(() => sender.TrySend(A<byte[]>.Ignored))
-				.MustNotHaveHappened();
+			AssertCanNotBeSent(someFile);
 		}
 
 		[Test]
-        public void Skip_WhenSendFails()
-        {
-            PrepareDocument(someFile, DateTime.Now, "4.0");
-            A.CallTo(() => sender.TrySend(null))
+		public void Skip_WhenSendFails()
+		{
+			var someFile = PrepareSomeGoodDocument();
+			A.CallTo(() => sender.TrySend(null))
 				.WithAnyArguments().Returns(false);
 
-            fileSender.SendFiles(new[] { someFile }, certificate)
-                .SkippedFiles.Should().BeEquivalentTo(someFile);
-        }
-
-        [Test]
-        public void Skip_WhenNotRecognized()
-        {
-            Document document;
-            A.CallTo(() => recognizer.TryRecognize(someFile, out document))
-                .Returns(false);
-            fileSender.SendFiles(new[] { someFile }, certificate)
-                .SkippedFiles.Should().BeEquivalentTo(someFile);
-			A.CallTo(() => sender.TrySend(null))
-				.WithAnyArguments().MustNotHaveHappened();
+			fileSender.SendFiles(new[] { someFile }, certificate)
+				.SkippedFiles.Should().BeEquivalentTo(someFile);
 		}
 
 		[Test]
-        public void IndependentlySend_WhenSeveralFiles()
-        {
-            //NOTE: Важно задавать, сколько раз должен возвращаться каждый из результатов
-            var document1 = PrepareDocument(someFile, DateTime.Now, "4.0");
-            var document2 = PrepareDocument(someFile2, DateTime.Now, "2.0");
-            var document3 = PrepareDocument(someFile3, DateTime.Now, "4.0");
+		public void Skip_WhenNotRecognized()
+		{
+			var file = PrepareSomeGoodDocument();
+			Document document;
+			A.CallTo(() => recognizer.TryRecognize(file, out document))
+				.Returns(false);
+			AssertCanNotBeSent(file);
+		}
 
-			A.CallTo(() => cryptographer.Sign(document1.Content, certificate))
-				.Returns(signedContent).Once();
-			A.CallTo(() => cryptographer.Sign(document3.Content, certificate))
-                .Returns(signedContent3).Once();
+		[Test]
+		public void IndependentlySend_WhenSeveralFiles()
+		{
+			var file1 = PrepareSomeGoodDocument();
+			var file2 = PrepareSomeGoodDocument();
+			var file3 = PrepareSomeGoodDocument();
 
-            A.CallTo(() => sender.TrySend(A<byte[]>.Ignored))
-                .ReturnsNextFromSequence(false, true);
+			A.CallTo(() => sender.TrySend(A<byte[]>.Ignored))
+				.ReturnsNextFromSequence(false, true);
 
-			fileSender.SendFiles(new[] { someFile, someFile2, someFile3 }, certificate)
-                .SkippedFiles.Should().BeEquivalentTo(someFile, someFile2);
+			fileSender.SendFiles(new[] { file1, file2, file3 }, certificate)
+				.SkippedFiles.Should().BeEquivalentTo(file1, file2);
 
-			A.CallTo(() => cryptographer.Sign(document2.Content, certificate))
+			A.CallTo(() => cryptographer.Sign(file2.Content, certificate))
 				.MustNotHaveHappened();
 		}
 
-		private Document PrepareDocument(File file, DateTime created, string format)
-        {
+		private File PrepareSomeGoodDocument()
+		{
+			return PrepareDocument(DateTime.Now);
+		}
+
+		private File PrepareDocument(DateTime created, string format = "4.0")
+		{
+			var file = new File(Guid.NewGuid().ToString("N"), Guid.NewGuid().ToByteArray());
 			var document = new Document(file.Name, file.Content, created, format);
 			A.CallTo(() => recognizer.TryRecognize(file, out document))
-				.Returns(true).Once();
-	        return document;
-        }
-    }
+				.Returns(true)
+				.AssignsOutAndRefParameters(document);
+			return file;
+		}
+
+		private void AssertSentSuccessful(File someFile)
+		{
+			fileSender.SendFiles(new[] { someFile }, certificate)
+				.SkippedFiles.Should().BeEmpty();
+			A.CallTo(() => sender.TrySend(A<byte[]>.Ignored))
+				.MustHaveHappened();
+		}
+
+		private void AssertCanNotBeSent(File someFile)
+		{
+			fileSender.SendFiles(new[] { someFile }, certificate)
+				.SkippedFiles.Should().BeEquivalentTo(someFile);
+			A.CallTo(() => sender.TrySend(A<byte[]>.Ignored))
+				.MustNotHaveHappened();
+		}
+
+	}
 }
