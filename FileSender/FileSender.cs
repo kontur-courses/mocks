@@ -106,38 +106,42 @@ namespace FileSender
 				.SkippedFiles.Should().BeEmpty();
 		}
 
-		[Test, Ignore("Not implemented")]
-		public void Skip_WhenBadFormat()
+		[Test]
+        [Ignore("Not implemented")]
+        public void Skip_WhenBadFormat()
 		{
 			throw new NotImplementedException();
 		}
 
-		[Test, Ignore("Not implemented")]
-		public void Skip_WhenOlderThanAMonth()
+		[Test]
+        [Ignore("Not implemented")]
+        public void Skip_WhenOlderThanAMonth()
 		{
 			throw new NotImplementedException();
 		}
 
-		[Test, Ignore("Not implemented")]
-		public void Send_WhenYoungerThanAMonth()
+		[Test]
+        [Ignore("Not implemented")]
+        public void Send_WhenYoungerThanAMonth()
 		{
 			throw new NotImplementedException();
 		}
 
-		[Test, Ignore("Not implemented")]
-		public void Skip_WhenSendFails()
+		[Test]
+        [Ignore("Not implemented")]
 		{
 			throw new NotImplementedException();
 		}
 
-		[Test, Ignore("Not implemented")]
-		public void Skip_WhenNotRecognized()
+		[Test]
+        [Ignore("Not implemented")]
 		{
 			throw new NotImplementedException();
 		}
 
-		[Test, Ignore("Not implemented")]
-		public void IndependentlySend_WhenSeveralFiles()
+		[Test]
+        [Ignore("Not implemented")]
+        public void IndependentlySend_WhenSeveralFiles()
 		{
 			throw new NotImplementedException();
 		}
