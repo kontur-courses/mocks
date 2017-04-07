@@ -129,13 +129,15 @@ namespace FileSender
 
 		[Test]
         [Ignore("Not implemented")]
-		{
+        public void Skip_WhenSendFails()
+        {
 			throw new NotImplementedException();
 		}
 
 		[Test]
         [Ignore("Not implemented")]
-		{
+        public void Skip_WhenNotRecognized()
+        {
 			throw new NotImplementedException();
 		}
 
