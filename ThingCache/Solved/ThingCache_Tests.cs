@@ -5,7 +5,7 @@ using NUnit.Framework;
 namespace MockFramework
 {
 	[TestFixture]
-	public class ThingCache_Should2
+	public class ThingCache_Tests
 	{
 		private IThingService thingService;
 		private ThingCache thingCache;
@@ -33,7 +33,7 @@ namespace MockFramework
 		}
 
 		[Test]
-		public void Get_ExistingThingFirstTime()
+		public void Get_ExistingThingFirstTime_TakeItFromService()
 		{
 			A.CallTo(() => thingService.TryRead(thingId1, out thing1))
 				.Returns(true);
@@ -69,7 +69,7 @@ namespace MockFramework
 		}
 
 		[Test]
-		public void DontCacheNulls()
+		public void Get_DontCacheNulls()
 		{
 			thingCache.Get(thingId1);
 			thingCache.Get(thingId1);
