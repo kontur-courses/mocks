@@ -29,11 +29,11 @@ namespace FileSender.Solved
 			recognizer = A.Fake<IRecognizer>();
 			fileSender = new FileSender(cryptographer, sender, recognizer);
 
+			var signedContent = Guid.NewGuid().ToByteArray();
 			A.CallTo(() => cryptographer.Sign(null, null))
 				.WithAnyArguments()
-				.Returns(Guid.NewGuid().ToByteArray());
-			A.CallTo(() => sender.TrySend(null))
-				.WithAnyArguments()
+				.Returns(signedContent);
+			A.CallTo(() => sender.TrySend(signedContent))
 				.Returns(true);
 		}
 
@@ -41,7 +41,7 @@ namespace FileSender.Solved
 		[TestCase("3.1")]
 		public void Send_WhenGoodFormat(string format)
 		{
-			var someFile = PrepareDocument(DateTime.Now, format);
+			File someFile = CreateDocumentFile(DateTime.Now, format);
 
 			AssertSentSuccessful(someFile);
 		}
@@ -50,21 +50,21 @@ namespace FileSender.Solved
 		public void Send_WhenYoungerThanAMonth()
 		{
 			var almostMonthAgo = DateTime.Now.AddMonths(-1).AddDays(1);
-			var someFile = PrepareDocument(almostMonthAgo);
+			var someFile = CreateDocumentFile(almostMonthAgo);
 			AssertSentSuccessful(someFile);
 		}
 
 		[Test]
 		public void Skip_WhenBadFormat()
 		{
-			var someFile = PrepareDocument(DateTime.Now, "2.0");
+			File someFile = CreateDocumentFile(DateTime.Now, "2.0");
 			AssertCanNotBeSent(someFile);
 		}
 
 		[Test]
 		public void Skip_WhenOlderThanAMonth()
 		{
-			var someFile = PrepareDocument(
+			var someFile = CreateDocumentFile(
 				DateTime.Now.Date.AddMonths(-1).AddDays(-1));
 
 			AssertCanNotBeSent(someFile);
@@ -73,7 +73,7 @@ namespace FileSender.Solved
 		[Test]
 		public void Skip_WhenSendFails()
 		{
-			var someFile = PrepareSomeGoodDocument();
+			var someFile = CreateSomeGoodDocumnetFile();
 			A.CallTo(() => sender.TrySend(null))
 				.WithAnyArguments().Returns(false);
 
@@ -84,7 +84,7 @@ namespace FileSender.Solved
 		[Test]
 		public void Skip_WhenNotRecognized()
 		{
-			var file = PrepareSomeGoodDocument();
+			var file = CreateSomeGoodDocumnetFile();
 			Document document;
 			A.CallTo(() => recognizer.TryRecognize(file, out document))
 				.Returns(false);
@@ -92,30 +92,50 @@ namespace FileSender.Solved
 		}
 
 		[Test]
-		public void IndependentlySend_WhenSeveralFiles()
+		public void IndependentlySendSeveralFiles_WhenSomeFailedToSend()
 		{
-			var file1 = PrepareSomeGoodDocument();
-			var file2 = PrepareSomeGoodDocument();
-			var file3 = PrepareSomeGoodDocument();
+			var file1 = CreateSomeGoodDocumnetFile();
+			var file2 = CreateSomeGoodDocumnetFile();
+			var file3 = CreateSomeGoodDocumnetFile();
 
 			A.CallTo(() => sender.TrySend(A<byte[]>.Ignored))
-				.ReturnsNextFromSequence(false, true);
+				.ReturnsNextFromSequence(false, true, false);
 
-			fileSender.SendFiles(new[] { file1, file2, file3 }, certificate)
-				.SkippedFiles.Should().BeEquivalentTo(file1, file2);
+			var res = fileSender.SendFiles(new[] { file1, file2, file3 }, certificate);
 
-			A.CallTo(() => cryptographer.Sign(file2.Content, certificate))
-				.MustNotHaveHappened();
+			res.SkippedFiles
+				.Should().Equal(file1, file3);
 		}
 
-		private File PrepareSomeGoodDocument()
+		[Test]
+		public void IndependentlySendSeveralFiles_WhenSomeCantBeRecognized()
 		{
-			return PrepareDocument(DateTime.Now);
+			var file1 = CreateSomeGoodDocumnetFile();
+			var file2 = CreateSomeGoodDocumnetFile();
+			var file3 = CreateSomeGoodDocumnetFile();
+
+			Document document;
+			A.CallTo(() => recognizer.TryRecognize(file2, out document))
+				.Returns(false);
+
+			var res = fileSender.SendFiles(new[] { file1, file2, file3 }, certificate);
+
+			res.SkippedFiles
+				.Should().Equal(file2);
+			A.CallTo(() => sender.TrySend(null)).WithAnyArguments()
+				.MustHaveHappened(Repeated.Exactly.Twice);
 		}
 
-		private File PrepareDocument(DateTime created, string format = "4.0")
+		private File CreateSomeGoodDocumnetFile()
 		{
-			var file = new File(Guid.NewGuid().ToString("N"), Guid.NewGuid().ToByteArray());
+			return CreateDocumentFile(DateTime.Now);
+		}
+
+		private File CreateDocumentFile(DateTime created, string format = "4.0")
+		{
+			var file = new File(
+				Guid.NewGuid().ToString("N"), 
+				Guid.NewGuid().ToByteArray());
 			var document = new Document(file.Name, file.Content, created, format);
 			A.CallTo(() => recognizer.TryRecognize(file, out document))
 				.Returns(true)
