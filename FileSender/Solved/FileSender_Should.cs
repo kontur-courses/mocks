@@ -73,7 +73,7 @@ namespace FileSender.Solved
 		[Test]
 		public void Skip_WhenSendFails()
 		{
-			var someFile = CreateSomeGoodDocumnetFile();
+			var someFile = CreateSomeGoodDocumentFile();
 			A.CallTo(() => sender.TrySend(null))
 				.WithAnyArguments().Returns(false);
 
@@ -84,7 +84,7 @@ namespace FileSender.Solved
 		[Test]
 		public void Skip_WhenNotRecognized()
 		{
-			var file = CreateSomeGoodDocumnetFile();
+			var file = CreateSomeGoodDocumentFile();
 			Document document;
 			A.CallTo(() => recognizer.TryRecognize(file, out document))
 				.Returns(false);
@@ -94,9 +94,9 @@ namespace FileSender.Solved
 		[Test]
 		public void IndependentlySendSeveralFiles_WhenSomeFailedToSend()
 		{
-			var file1 = CreateSomeGoodDocumnetFile();
-			var file2 = CreateSomeGoodDocumnetFile();
-			var file3 = CreateSomeGoodDocumnetFile();
+			var file1 = CreateSomeGoodDocumentFile();
+			var file2 = CreateSomeGoodDocumentFile();
+			var file3 = CreateSomeGoodDocumentFile();
 
 			A.CallTo(() => sender.TrySend(A<byte[]>.Ignored))
 				.ReturnsNextFromSequence(false, true, false);
@@ -110,9 +110,9 @@ namespace FileSender.Solved
 		[Test]
 		public void IndependentlySendSeveralFiles_WhenSomeCantBeRecognized()
 		{
-			var file1 = CreateSomeGoodDocumnetFile();
-			var file2 = CreateSomeGoodDocumnetFile();
-			var file3 = CreateSomeGoodDocumnetFile();
+			var file1 = CreateSomeGoodDocumentFile();
+			var file2 = CreateSomeGoodDocumentFile();
+			var file3 = CreateSomeGoodDocumentFile();
 
 			Document document;
 			A.CallTo(() => recognizer.TryRecognize(file2, out document))
@@ -126,7 +126,7 @@ namespace FileSender.Solved
 				.MustHaveHappened(Repeated.Exactly.Twice);
 		}
 
-		private File CreateSomeGoodDocumnetFile()
+		private File CreateSomeGoodDocumentFile()
 		{
 			return CreateDocumentFile(DateTime.Now);
 		}
