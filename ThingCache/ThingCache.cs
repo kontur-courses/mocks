@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+п»їusing System.Collections.Generic;
 using NUnit.Framework;
 
 namespace MockFramework
@@ -47,7 +47,7 @@ namespace MockFramework
 			thingCache = new ThingCache(thingService);
 		}
 
-		//TODO: написать простейший тест, а затем все остальные
-		//Live Template tt работает!
+		//TODO: РЅР°РїРёСЃР°С‚СЊ РїСЂРѕСЃС‚РµР№С€РёР№ С‚РµСЃС‚, Р° Р·Р°С‚РµРј РІСЃРµ РѕСЃС‚Р°Р»СЊРЅС‹Рµ
+		//Live Template tt СЂР°Р±РѕС‚Р°РµС‚!
 	}
 }
