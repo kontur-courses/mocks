@@ -282,6 +282,7 @@ namespace Challenge.IncorrectImplementations
         public ThingCacheSTA(IThingService thingService)
             : base(thingService)
         {
+            dictionary.Clear();
         }
 
         public override Thing Get(string thingId)
