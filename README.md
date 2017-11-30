@@ -15,7 +15,7 @@ Dependency Inversion Principle говорит, что конкретика до�
 
 ## Необходимые знания
 
-Понадобится знание C# или JS
+Понадобится знание C#
 
 Рекомендуется пройти блоки [Тестирование](https://github.com/kontur-csharper/testing) и [Dependency Injection Container](https://github.com/kontur-csharper/di)
 
