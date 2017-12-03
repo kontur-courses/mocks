@@ -1,0 +1,62 @@
+<html>
+<head>
+	<script src="https://cdn.firebase.com/js/client/2.4.2/firebase.js"></script>	
+	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.0.0-alpha/css/bootstrap.min.css">	
+	<style>
+		.no{background-color: #FCC;}
+		.ok{background-color: #DFD;}
+		.over{background-color: #FFA;}
+	</style>
+</head>
+<body>
+	<div id="container" />
+
+<script>
+	function buildDateKey() {
+		var now = new Date();
+		var day = ("0" + now.getDate()).slice(-2);
+		var month = ("0" + (now.getMonth() + 1)).slice(-2);
+		var year = now.getFullYear();
+		return year + month + day;
+	}
+
+	function createFirebase() {
+		var url = "https://mocks-challenge.firebaseio.com";
+		var realm = "thingcache";
+		var dateKey = buildDateKey();
+		return new Firebase(`${url}/${realm}/${dateKey}`);
+	}
+
+	console.log("hi!");
+	var fb = createFirebase();
+	fb.on("value", function(snapshot) {		
+		var html = "<table class='table table-condensed'>";
+		html += "<tr>";
+		["Name", "0", "1", "2", "3", "All", "Rem", "STA", "Case", "Null", "Empty","Twice", "Single", "Single2"].forEach(
+			v => html += "<th>" + v + "</th>");
+		html += "</tr>";
+		
+		var res = snapshot.val();		
+		res = res ? res : [];		
+		var names = Object.keys(res);
+		names.sort((a,b) => -countNonzero(res[a].implementations) + countNonzero(res[b].implementations));
+		names.forEach(function(name){
+			html += "<tr><td>" + name.replace("<", "").replace(">", "") + "</td>";
+			res[name].implementations.forEach(v => html += formatCell(v));
+			html += "</tr>";
+		});
+		html += "</table>";
+		document.getElementById("container").innerHTML = html;
+	});
+	
+	function countNonzero(arr){
+		return arr.filter(v => v > 0).length;
+	}
+
+	function formatCell(v){
+		var clazz = v == 0 ? "no" : (v <= 3 ? "ok" : "over");
+		return "<td class='" + clazz + "'>" + v + "</td>"; 
+	}
+</script>
+</body>
+</html>

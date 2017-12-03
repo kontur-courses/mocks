@@ -1,4 +1,4 @@
-using System;
+п»їusing System;
 using System.Security.Cryptography.X509Certificates;
 using FakeItEasy;
 using FileSender.Dependencies;
@@ -20,10 +20,10 @@ namespace FileSender.Solved
 		[SetUp]
 		public void SetUp()
 		{
-			// Тут мы задаем некоторые известны для всех тестов данные 
-			// и умолчательные поведения сервисов-заглушек.
-			// Наша цель — сделать так, чтобы в конкретных тестах осталась только их специфика,
-			// а конфигурирование "обычного" поведения не надо было повторять от теста к тесту
+			// РўСѓС‚ РјС‹ Р·Р°РґР°РµРј РЅРµРєРѕС‚РѕСЂС‹Рµ РёР·РІРµСЃС‚РЅС‹ РґР»СЏ РІСЃРµС… С‚РµСЃС‚РѕРІ РґР°РЅРЅС‹Рµ 
+			// Рё СѓРјРѕР»С‡Р°С‚РµР»СЊРЅС‹Рµ РїРѕРІРµРґРµРЅРёСЏ СЃРµСЂРІРёСЃРѕРІ-Р·Р°РіР»СѓС€РµРє.
+			// РќР°С€Р° С†РµР»СЊ вЂ” СЃРґРµР»Р°С‚СЊ С‚Р°Рє, С‡С‚РѕР±С‹ РІ РєРѕРЅРєСЂРµС‚РЅС‹С… С‚РµСЃС‚Р°С… РѕСЃС‚Р°Р»Р°СЃСЊ С‚РѕР»СЊРєРѕ РёС… СЃРїРµС†РёС„РёРєР°,
+			// Р° РєРѕРЅС„РёРіСѓСЂРёСЂРѕРІР°РЅРёРµ "РѕР±С‹С‡РЅРѕРіРѕ" РїРѕРІРµРґРµРЅРёСЏ РЅРµ РЅР°РґРѕ Р±С‹Р»Рѕ РїРѕРІС‚РѕСЂСЏС‚СЊ РѕС‚ С‚РµСЃС‚Р° Рє С‚РµСЃС‚Сѓ
 			cryptographer = A.Fake<ICryptographer>();
 			sender = A.Fake<ISender>();
 			recognizer = A.Fake<IRecognizer>();
@@ -73,7 +73,7 @@ namespace FileSender.Solved
 		[Test]
 		public void Skip_WhenSendFails()
 		{
-			var someFile = CreateSomeGoodDocumnetFile();
+			var someFile = CreateSomeGoodDocumentFile();
 			A.CallTo(() => sender.TrySend(null))
 				.WithAnyArguments().Returns(false);
 
@@ -84,7 +84,7 @@ namespace FileSender.Solved
 		[Test]
 		public void Skip_WhenNotRecognized()
 		{
-			var file = CreateSomeGoodDocumnetFile();
+			var file = CreateSomeGoodDocumentFile();
 			Document document;
 			A.CallTo(() => recognizer.TryRecognize(file, out document))
 				.Returns(false);
@@ -94,9 +94,9 @@ namespace FileSender.Solved
 		[Test]
 		public void IndependentlySendSeveralFiles_WhenSomeFailedToSend()
 		{
-			var file1 = CreateSomeGoodDocumnetFile();
-			var file2 = CreateSomeGoodDocumnetFile();
-			var file3 = CreateSomeGoodDocumnetFile();
+			var file1 = CreateSomeGoodDocumentFile();
+			var file2 = CreateSomeGoodDocumentFile();
+			var file3 = CreateSomeGoodDocumentFile();
 
 			A.CallTo(() => sender.TrySend(A<byte[]>.Ignored))
 				.ReturnsNextFromSequence(false, true, false);
@@ -110,9 +110,9 @@ namespace FileSender.Solved
 		[Test]
 		public void IndependentlySendSeveralFiles_WhenSomeCantBeRecognized()
 		{
-			var file1 = CreateSomeGoodDocumnetFile();
-			var file2 = CreateSomeGoodDocumnetFile();
-			var file3 = CreateSomeGoodDocumnetFile();
+			var file1 = CreateSomeGoodDocumentFile();
+			var file2 = CreateSomeGoodDocumentFile();
+			var file3 = CreateSomeGoodDocumentFile();
 
 			Document document;
 			A.CallTo(() => recognizer.TryRecognize(file2, out document))
@@ -126,7 +126,7 @@ namespace FileSender.Solved
 				.MustHaveHappened(Repeated.Exactly.Twice);
 		}
 
-		private File CreateSomeGoodDocumnetFile()
+		private File CreateSomeGoodDocumentFile()
 		{
 			return CreateDocumentFile(DateTime.Now);
 		}
