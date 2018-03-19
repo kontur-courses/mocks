@@ -14,7 +14,8 @@ namespace FileSender
 		private readonly ISender sender;
 		private readonly IRecognizer recognizer;
 
-		public FileSender(ICryptographer cryptographer,
+		public FileSender(
+			ICryptographer cryptographer,
 			ISender sender,
 			IRecognizer recognizer)
 		{
@@ -47,7 +48,7 @@ namespace FileSender
 		private bool CheckFormat(Document document)
 		{
 			return document.Format == "4.0" ||
-				   document.Format == "3.1";
+			       document.Format == "3.1";
 		}
 
 		private bool CheckActual(Document document)
@@ -81,8 +82,8 @@ namespace FileSender
 			// чтобы в конкретных тестах осталась только специфика теста,
 			// без конфигурирования "обычного" сценария работы
 
-			file = new File("someFile", new byte[] { 1, 2, 3 });
-			signedContent = new byte[] { 1, 7 };
+			file = new File("someFile", new byte[] {1, 2, 3});
+			signedContent = new byte[] {1, 7};
 
 			cryptographer = A.Fake<ICryptographer>();
 			sender = A.Fake<ISender>();
@@ -102,48 +103,55 @@ namespace FileSender
 			A.CallTo(() => sender.TrySend(signedContent))
 				.Returns(true);
 
-			fileSender.SendFiles(new[] { file }, certificate)
+			fileSender.SendFiles(new[] {file}, certificate)
 				.SkippedFiles.Should().BeEmpty();
 		}
 
 		[Test]
-        [Ignore("Not implemented")]
-        public void Skip_WhenBadFormat()
+		[Ignore("Not implemented")]
+		public void Skip_WhenBadFormat()
 		{
 			throw new NotImplementedException();
 		}
 
 		[Test]
-        [Ignore("Not implemented")]
-        public void Skip_WhenOlderThanAMonth()
+		[Ignore("Not implemented")]
+		public void Skip_WhenOlderThanAMonth()
 		{
 			throw new NotImplementedException();
 		}
 
 		[Test]
-        [Ignore("Not implemented")]
-        public void Send_WhenYoungerThanAMonth()
+		[Ignore("Not implemented")]
+		public void Send_WhenYoungerThanAMonth()
 		{
 			throw new NotImplementedException();
 		}
 
 		[Test]
-        [Ignore("Not implemented")]
-        public void Skip_WhenSendFails()
-        {
+		[Ignore("Not implemented")]
+		public void Skip_WhenSendFails()
+		{
 			throw new NotImplementedException();
 		}
 
 		[Test]
-        [Ignore("Not implemented")]
-        public void Skip_WhenNotRecognized()
-        {
+		[Ignore("Not implemented")]
+		public void Skip_WhenNotRecognized()
+		{
 			throw new NotImplementedException();
 		}
 
 		[Test]
-        [Ignore("Not implemented")]
-        public void IndependentlySend_WhenSeveralFiles()
+		[Ignore("Not implemented")]
+		public void IndependentlySend_WhenSeveralFilesAndSomeAreInvalid()
+		{
+			throw new NotImplementedException();
+		}
+
+		[Test]
+		[Ignore("Not implemented")]
+		public void IndependentlySend_WhenSeveralFilesAndSomeCouldNotSend()
 		{
 			throw new NotImplementedException();
 		}
