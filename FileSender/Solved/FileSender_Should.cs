@@ -57,7 +57,7 @@ namespace FileSender.Solved
 		[Test]
 		public void Skip_WhenBadFormat()
 		{
-			File someFile = CreateDocumentFile(DateTime.Now, "2.0");
+			var someFile = CreateDocumentFile(DateTime.Now, "2.0");
 			AssertCanNotBeSent(someFile);
 		}
 
