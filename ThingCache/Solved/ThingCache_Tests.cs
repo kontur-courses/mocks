@@ -43,7 +43,7 @@ namespace MockFramework
 		}
 
 		[Test]
-		public void Get_OneThingTwice_CallsServiceOnce()
+		public void Get_ExistingThingTheSecondTime_TakeItFromCache()
 		{
 			A.CallTo(() => thingService.TryRead(thingId1, out thing1))
 				.Returns(true)
