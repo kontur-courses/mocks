@@ -46,6 +46,16 @@ namespace MockFramework.Solved
         }
 
         [Test]
+        public void AskThingAgain_AfterNullReturned()
+        {
+            thingCache.Get(thingId1);
+            thingCache.Get(thingId1);
+
+            A.CallTo(() => thingService.TryRead(thingId1, out thing1))
+                .MustHaveHappened(Repeated.Exactly.Twice);
+        }
+
+        [Test]
         public void NotAskThing_OnSecondGet()
         {
             A.CallTo(() => thingService.TryRead(thingId1, out thing1))
