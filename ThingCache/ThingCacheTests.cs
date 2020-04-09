@@ -81,6 +81,7 @@ namespace MockFramework
         }
 
         [TestCase(thingId1)]
+        [TestCase(thingId2)]
         public void Get_ReturnsFromCacheForOthers(string thingId)
         {
             var firstThing = thingCache.Get(thingId);
