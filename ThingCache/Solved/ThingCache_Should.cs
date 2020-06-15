@@ -48,6 +48,10 @@ namespace MockFramework.Solved
         [Test]
         public void AskThingAgain_AfterNullReturned()
         {
+            Thing outThing;
+            A.CallTo(() => thingService.TryRead(thingId1, out outThing))
+                .Returns(false);
+
             thingCache.Get(thingId1);
             thingCache.Get(thingId1);
 
