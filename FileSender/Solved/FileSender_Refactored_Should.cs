@@ -123,7 +123,7 @@ namespace FileSender.Solved
             res.SkippedFiles
                 .Should().Equal(file2);
             A.CallTo(() => sender.TrySend(null)).WithAnyArguments()
-                .MustHaveHappened(Repeated.Exactly.Twice);
+                .MustHaveHappenedTwiceExactly();
         }
 
         private File CreateSomeGoodDocumentFile()

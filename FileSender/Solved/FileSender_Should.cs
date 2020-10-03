@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Linq;
 using System.Security.Cryptography.X509Certificates;
 using FakeItEasy;
@@ -136,7 +136,7 @@ namespace FileSender.Solved
 
             var actual = fileSender.SendFiles(files, certificate);
 
-            A.CallTo(() => sender.TrySend(A<byte[]>._)).MustHaveHappened(Repeated.Exactly.Twice);
+            A.CallTo(() => sender.TrySend(A<byte[]>._)).MustHaveHappenedTwiceExactly();
             A.CallTo(() => sender.TrySend(invalidDocumentSignedContent)).MustNotHaveHappened();
             actual.SkippedFiles.Should().BeEquivalentTo(files[1]);
         }
