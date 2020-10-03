@@ -24,7 +24,7 @@ namespace MockFramework
         }
 
         [Test]
-        public void Get_NonexistingObject_ReturnsNull()
+        public void Get_NonExistingObject_ReturnsNull()
         {
             thingCache.Get(thingId1)
                 .Should().BeNull();
@@ -53,7 +53,7 @@ namespace MockFramework
             thingCache.Get(thingId1);
 
             A.CallTo(() => thingService.TryRead(thingId1, out thing1))
-                .MustHaveHappened(Repeated.Exactly.Once);
+                .MustHaveHappenedOnceExactly();
         }
 
         [Test]
@@ -75,7 +75,7 @@ namespace MockFramework
             thingCache.Get(thingId1);
 
             A.CallTo(() => thingService.TryRead(thingId1, out thing1))
-                .MustHaveHappened(Repeated.Exactly.Twice);
+                .MustHaveHappenedTwiceExactly();
 
         }
 
