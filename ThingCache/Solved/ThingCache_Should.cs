@@ -56,7 +56,7 @@ namespace MockFramework.Solved
             thingCache.Get(thingId1);
 
             A.CallTo(() => thingService.TryRead(thingId1, out thing1))
-                .MustHaveHappened(Repeated.Exactly.Twice);
+                .MustHaveHappenedTwiceExactly();
         }
 
         [Test]
@@ -70,7 +70,7 @@ namespace MockFramework.Solved
 
             Assert.AreEqual(thingId1, reaskedThing.ThingId);
             A.CallTo(() => thingService.TryRead(thingId1, out thing1))
-                .MustHaveHappened(Repeated.Exactly.Once);
+                .MustHaveHappenedOnceExactly();
         }
 
         [Test]
@@ -104,9 +104,9 @@ namespace MockFramework.Solved
             Assert.AreEqual(thingId1, reaskedThing1.ThingId);
             Assert.AreEqual(thingId2, reaskedThing2.ThingId);
             A.CallTo(() => thingService.TryRead(thingId1, out thing1))
-                .MustHaveHappened(Repeated.Exactly.Once);
+                .MustHaveHappenedOnceExactly();
             A.CallTo(() => thingService.TryRead(thingId2, out thing2))
-                .MustHaveHappened(Repeated.Exactly.Once);
+                .MustHaveHappenedOnceExactly();
         }
     }
 }
