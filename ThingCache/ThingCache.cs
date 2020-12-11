@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using FakeItEasy;
 using NUnit.Framework;
 
 namespace MockFramework
@@ -44,7 +45,8 @@ namespace MockFramework
         [SetUp]
         public void SetUp()
         {
-            //thingService = A...
+            thingService = A.Fake<IThingService>();
+
             thingCache = new ThingCache(thingService);
         }
 
@@ -53,8 +55,92 @@ namespace MockFramework
 
         // Пример теста
         [Test]
-        public void GiveMeAGoodNamePlease()
+        public void GetThingAndReturn()
         {
+            A.CallTo(() => thingService.TryRead(thingId1, out thing1))
+                .Returns(true);
+
+            var actualThing = thingCache.Get(thingId1);
+
+            Assert.AreEqual(thingId1, actualThing.ThingId);
+        }
+
+        [Test]
+        public void GetNotExistThing()
+        {
+            Thing thing;
+            A.CallTo(() => thingService.TryRead(thingId1, out thing))
+                .Returns(false);
+
+            var actualThing = thingCache.Get(thingId1);
+
+            Assert.AreEqual(null, actualThing);
+        }
+
+        [Test]
+        public void GetNotExistThingTwice()
+        {
+            Thing thing;
+            A.CallTo(() => thingService.TryRead(thingId1, out thing))
+                .Returns(false);
+
+            thingCache.Get(thingId1);
+            var secondThing1 = thingCache.Get(thingId1);
+
+            Assert.AreEqual(null, secondThing1);
+        }
+
+        [Test]
+        public void GetNotExistThingTwiceMore()
+        {
+            Thing thing;
+            A.CallTo(() => thingService.TryRead(thingId1, out thing))
+                .Returns(false);
+
+            thingCache.Get(thingId1);
+            thingCache.Get(thingId1);
+
+            A.CallTo(() => thingService.TryRead(thingId1, out thing))
+                .MustHaveHappenedTwiceExactly();
+        }
+
+        [Test]
+        public void GetExistThingTwice()
+        {
+            A.CallTo(() => thingService.TryRead(thingId1, out thing1))
+                .Returns(true);
+
+            var firstCallThing = thingCache.Get(thingId1);
+            var secondCallThing = thingCache.Get(thingId1);
+
+            Assert.AreEqual(thingId1, firstCallThing.ThingId);
+            Assert.AreEqual(thingId1, secondCallThing.ThingId);
+            Thing thing;
+            A.CallTo(() => thingService.TryRead(thingId1, out thing))
+                .MustHaveHappenedOnceExactly();
+        }
+
+        [Test]
+        public void GetExistSeveralThings()
+        {
+            A.CallTo(() => thingService.TryRead(thingId1, out thing1))
+                .Returns(true);
+            A.CallTo(() => thingService.TryRead(thingId2, out thing2))
+                .Returns(true);
+
+            thingCache.Get(thingId1);
+            thingCache.Get(thingId2);
+            var secondCallThing1 = thingCache.Get(thingId1);
+            var secondCallThing2 = thingCache.Get(thingId2);
+
+            Assert.AreEqual(thingId1, secondCallThing1.ThingId);
+            Assert.AreEqual(thingId2, secondCallThing2.ThingId);
+
+            Thing thing;
+            A.CallTo(() => thingService.TryRead(thingId1, out thing))
+                .MustHaveHappenedOnceExactly();
+            A.CallTo(() => thingService.TryRead(thingId2, out thing))
+                .MustHaveHappenedOnceExactly();
         }
 
         /** Проверки в тестах
@@ -70,6 +156,7 @@ namespace MockFramework
          * var value = "42";
          * A.CallTo(() => fake.TryRead(id, out value)).MustHaveHappened();
          */
+
 
         /** Синтаксис out
          * var value = "42";
