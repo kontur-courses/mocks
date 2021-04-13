@@ -1,4 +1,6 @@
 ﻿using System.Collections.Generic;
+using FakeItEasy;
+using FluentAssertions;
 using NUnit.Framework;
 
 namespace MockFramework
@@ -44,8 +46,17 @@ namespace MockFramework
         [SetUp]
         public void SetUp()
         {
-            //thingService = A...
+            thingService = A.Fake<IThingService>();
             thingCache = new ThingCache(thingService);
+
+            Thing _ = null;
+            A.CallTo(() => thingService.TryRead(thingId1, out _))
+                .Returns(true)
+                .AssignsOutAndRefParameters(thing1);
+
+            A.CallTo(() => thingService.TryRead(thingId2, out _))
+                .Returns(true)
+                .AssignsOutAndRefParameters(thing2);
         }
 
         // TODO: Написать простейший тест, а затем все остальные
@@ -53,8 +64,40 @@ namespace MockFramework
 
         // Пример теста
         [Test]
-        public void GiveMeAGoodNamePlease()
+        public void CallThingServiceOnce_OnFirstGet()
         {
+            thingCache.Get(thingId1);
+
+            Thing _ = null;
+
+            A.CallTo(() => thingService.TryRead(thingId1, out _)).MustHaveHappenedOnceExactly();
+        }
+
+        [Test]
+        public void CallThingServiceOnce_OnTwoGet()
+        {
+            thingCache.Get(thingId1);
+            thingCache.Get(thingId1);
+
+            Thing _ = null;
+
+            A.CallTo(() => thingService.TryRead(thingId1, out _)).MustHaveHappenedOnceExactly();
+        }
+
+        [Test]
+        public void ReturnRightThing_OnGet()
+        {
+            var thing = thingCache.Get(thingId1);
+
+            thing.Should().Be(thing1);
+        }
+
+        [Test]
+        public void ReturnNull_OnEmptyId()
+        {
+            var thing = thingCache.Get("");
+
+            thing.Should().BeNull();
         }
 
         /** Проверки в тестах
