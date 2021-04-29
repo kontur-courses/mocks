@@ -198,8 +198,10 @@ namespace FileSender
         [Test]
         public void IndependentlySend_WhenSeveralFilesAndSomeAreInvalid()
         {
-            fileSender.SendFiles(new[] { file, invalidFile }, certificate)
-                .SkippedFiles.Should().HaveCount(1);
+            var result = fileSender.SendFiles(new[] { file, invalidFile }, certificate);
+                
+            result.SkippedFiles.Should().HaveCount(1);
+            result.SkippedFiles.Should().Contain(invalidFile);
 
             A.CallTo(() => sender.TrySend(signedContent)).MustHaveHappenedOnceExactly();
         }
@@ -207,8 +209,10 @@ namespace FileSender
         [Test]
         public void IndependentlySend_WhenSeveralFilesAndSomeCouldNotSend()
         {
-            fileSender.SendFiles(new[] { file, couldNotSendFile }, certificate)
-                .SkippedFiles.Should().HaveCount(1);
+            var result = fileSender.SendFiles(new[] { file, couldNotSendFile }, certificate);
+
+            result.SkippedFiles.Should().HaveCount(1);
+            result.SkippedFiles.Should().Contain(couldNotSendFile);
 
             A.CallTo(() => sender.TrySend(signedContent)).MustHaveHappenedOnceExactly();
         }
