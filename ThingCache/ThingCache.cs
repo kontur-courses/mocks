@@ -88,6 +88,17 @@ namespace MockFramework
             A.CallTo(() => thingService.TryRead(thingId1, out thing1)).MustHaveHappenedOnceExactly();
         }
 
+        [Test]
+        public void ThingCache_Get_ReturnsValueFromCacheMany()
+        {
+            thingCache.Get(thingId1); // put value to cache
+            thingCache.Get(thingId2); // put value to cache
+            thingCache.Get(thingId1); // get value via cache
+            thingCache.Get(thingId2); // get value via cache
+            A.CallTo(() => thingService.TryRead(thingId1, out thing1)).MustHaveHappenedOnceExactly();
+            A.CallTo(() => thingService.TryRead(thingId2, out thing2)).MustHaveHappenedOnceExactly();
+        }
+
         /** Проверки в тестах
          * Assert.AreEqual(expectedValue, actualValue);
          * actualValue.Should().Be(expectedValue);
