@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using FakeItEasy;
 using NUnit.Framework;
 
 namespace MockFramework
@@ -40,11 +41,17 @@ namespace MockFramework
         private const string thingId2 = "CoolBoots";
         private Thing thing2 = new Thing(thingId2);
 
+        private const string thingIdNotExisted = "NotExisted";
+        private Thing thing3 = null;
+
         // Метод, помеченный атрибутом SetUp, выполняется перед каждым тестов
         [SetUp]
         public void SetUp()
         {
-            //thingService = A...
+            thingService = A.Fake<IThingService>();
+            A.CallTo(() => thingService.TryRead(thingId1, out thing1)).Returns(true);
+            A.CallTo(() => thingService.TryRead(thingId2, out thing2)).Returns(true);
+            A.CallTo(() => thingService.TryRead(thingIdNotExisted, out thing3)).Returns(false);
             thingCache = new ThingCache(thingService);
         }
 
@@ -53,8 +60,43 @@ namespace MockFramework
 
         // Пример теста
         [Test]
-        public void GiveMeAGoodNamePlease()
+        public void ThingCache_Get_ReturnsCorrectValue()
         {
+            var actualValue = thingCache.Get(thingId1);
+            Assert.That(actualValue, Is.EqualTo(thing1));
+        }
+
+        [Test]
+        public void ThingCache_Get_ReturnsNoValue()
+        {
+            var notExistedValue = thingCache.Get(thingIdNotExisted);
+            Assert.That(notExistedValue, Is.Null);
+        }
+
+        [Test]
+        public void ThingCache_Get_MethodCallingHappened()
+        {
+            thingCache.Get(thingId1);
+            A.CallTo(() => thingService.TryRead(thingId1, out thing1)).MustHaveHappenedOnceExactly();
+        }
+
+        [Test]
+        public void ThingCache_Get_ReturnsValueFromCache()
+        {
+            thingCache.Get(thingId1); // put value to cache
+            thingCache.Get(thingId1); // get value via cache
+            A.CallTo(() => thingService.TryRead(thingId1, out thing1)).MustHaveHappenedOnceExactly();
+        }
+
+        [Test]
+        public void ThingCache_Get_ReturnsValueFromCacheMany()
+        {
+            thingCache.Get(thingId1); // put value to cache
+            thingCache.Get(thingId2); // put value to cache
+            thingCache.Get(thingId1); // get value via cache
+            thingCache.Get(thingId2); // get value via cache
+            A.CallTo(() => thingService.TryRead(thingId1, out thing1)).MustHaveHappenedOnceExactly();
+            A.CallTo(() => thingService.TryRead(thingId2, out thing2)).MustHaveHappenedOnceExactly();
         }
 
         /** Проверки в тестах
